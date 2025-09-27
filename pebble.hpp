@@ -1,60 +1,72 @@
-// #include <memory>
-// #include <raylib.h>
-// #include <vector>
-
-// namespace Phy {
-
-//     struct World;
-
-//     struct Box {
-
-//         Vector2 vel;
-//         Vector2 force;
-//         float mass;
-
-//         Box(Rectangle hitbox, std::shared_ptr<World> w);
-
-//         private:
-//             std::weak_ptr<World> world;
-//     };
-
-//     struct World : public std::enable_shared_from_this<World> {
-
-//         void AddObj(std::shared_ptr<Box> obj);
-//         void RemObj(std::shared_ptr<Box> obj);
-//         std::shared_ptr<World> getPtr();
-//         void step(float dt);
-
-//         private:
-//             std::vector<std::unique_ptr<Box>> objs;
-
-//     };
-// };
-
-// #ifdef PHY_IMPL
-// #endif
-
-#include "Frax.hpp"
-#include <any>
+// #define CP_USE_DOUBLES 0
 #include <chipmunk/chipmunk.h>
 
 namespace Pebble {
-struct Box {
+struct Obj {
   cpBody *Body;
   cpShape *Shape;
   cpSpace *Space;
 
-  Box(cpVect pos, cpVect size, cpFloat mass, cpSpace *space);
-  ~Box();
+  Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass);
+  Obj(cpSpace *space, cpVect pos, cpFloat radius, cpFloat mass);
+  ~Obj();
 
-  Box(const Box &) = delete;
-  Box &operator=(const Box &) = delete;
-  
+  Obj(const Obj &) = delete;
+  Obj &operator=(const Obj &) = delete;
+
   operator cpBody *() const;
   operator cpShape *() const;
+
+  void setAngle(cpFloat);
+  cpFloat getAngle();
+
+  cpVect getPosition();
+
+  void setVelocity(cpVect);
+  void setAngularVelocity(cpFloat);
+  void applyForce(cpVect);
+  void applyImpulse(cpVect);
+  void setCollisionType(cpCollisionType);
 };
 
-void FraxDraw(Frax::Rect &);
+#ifdef FRAX_FRAMEWORK
+void Draw(Frax::Rect *);
+#endif
+
+} // namespace Pebble
+
+// Inline function definations
+namespace Pebble {
+
+inline cpVect Obj::getPosition() {
+  return cpBodyGetPosition(Body);
+}
+
+inline void Obj::applyForce(cpVect force) {
+  return cpBodyApplyForceAtLocalPoint(Body, force, cpvzero);
+}
+
+inline void Obj::applyImpulse(cpVect impulse) {
+  return cpBodyApplyImpulseAtLocalPoint(Body, impulse, cpvzero);
+}
+
+inline void Obj::setAngle(cpFloat radians) {
+  return cpBodySetAngle(Body, radians);
+}
+
+inline cpFloat Obj::getAngle() { return cpBodyGetAngle(Body); }
+
+inline void Obj::setVelocity(cpVect vel) {
+  return cpBodySetVelocity(Body, vel);
+}
+
+inline void Obj::setAngularVelocity(cpFloat vel) {
+  return cpBodySetAngularVelocity(Body, vel);
+}
+
+inline void Obj::setCollisionType(cpCollisionType type) {
+  return cpShapeSetCollisionType(Shape, type);
+}
 } // namespace Pebble
 
 // #define PEBBLE_IMPL
@@ -63,7 +75,18 @@ void FraxDraw(Frax::Rect &);
 
 namespace Pebble {
 
-Box::Box(cpVect pos, cpVect size, cpFloat mass, cpSpace *space) {
+#ifdef FRAX_FRAMEWORK
+void Draw(Frax::Rect *Rect) {
+  auto box = std::any_cast<Obj *>(Rect->Data);
+  cpVect pos = cpBodyGetPosition(box->Body);
+
+  Rect->SetCenter({static_cast<float>(pos.x), static_cast<float>(pos.y)});
+  Rect->Rotation = cpBodyGetAngle(box->Body) * RAD2DEG;
+
+  Rect->Draw();
+}
+#endif
+Obj::Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass) {
 
   this->Space = space;
 
@@ -74,9 +97,28 @@ Box::Box(cpVect pos, cpVect size, cpFloat mass, cpSpace *space) {
   this->Shape =
       cpSpaceAddShape(Space, cpBoxShapeNew(this->Body, size.x, size.y, 0.0));
   cpShapeSetUserData(this->Shape, this);
+
+  cpShapeSetFriction(this->Shape, 0.7f);
+  cpShapeSetElasticity(this->Shape, 0.3f);
 }
 
-Box::~Box() {
+Obj::Obj(cpSpace *space, cpVect pos, cpFloat radius, cpFloat mass) {
+
+  this->Space = space;
+
+  cpFloat Moment = cpMomentForCircle(mass, 0, radius, cpvzero);
+  this->Body = cpSpaceAddBody(Space, cpBodyNew(mass, Moment));
+  cpBodySetPosition(this->Body, pos);
+
+  this->Shape =
+      cpSpaceAddShape(Space, cpCircleShapeNew(this->Body, radius, cpvzero));
+  cpShapeSetUserData(this->Shape, this);
+
+  cpShapeSetFriction(this->Shape, 0.7f);
+  cpShapeSetElasticity(this->Shape, 0.3f);
+}
+
+Obj::~Obj() {
   if (cpSpaceContainsShape(Space, Shape)) {
     cpSpaceRemoveShape(Space, Shape);
   }
@@ -91,19 +133,9 @@ Box::~Box() {
   }
 }
 
-Box::operator cpBody *() const { return this->Body; }
+Obj::operator cpBody *() const { return this->Body; }
 
-Box::operator cpShape *() const { return this->Shape; }
-
-void FraxDraw(Frax::Rect &Rect) {
-  auto box = std::any_cast<Box *>(Rect.Data);
-  cpVect pos = cpBodyGetPosition(box->Body);
-
-  Rect.SetCenter({pos.x, pos.y});
-  Rect.Rotation = cpBodyGetAngle(box->Body) * RAD2DEG;
-
-  Rect.Draw();
-}
+Obj::operator cpShape *() const { return this->Shape; }
 
 } // namespace Pebble
 
