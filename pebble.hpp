@@ -6,6 +6,7 @@ struct Obj {
   cpBody *Body;
   cpShape *Shape;
   cpSpace *Space;
+  bool ShouldDelete;
 
   Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass);
   Obj(cpSpace *space, cpVect pos, cpFloat radius, cpFloat mass);
@@ -89,6 +90,7 @@ void Draw(Frax::Rect *Rect) {
 Obj::Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass) {
 
   this->Space = space;
+  this->ShouldDelete = false;
 
   cpFloat Moment = cpMomentForBox(mass, size.x, size.y);
   this->Body = cpSpaceAddBody(Space, cpBodyNew(mass, Moment));
