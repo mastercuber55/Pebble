@@ -107,6 +107,7 @@ Obj::Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass) {
 Obj::Obj(cpSpace *space, cpVect pos, cpFloat radius, cpFloat mass) {
 
   this->Space = space;
+  this->ShouldDelete = false;
 
   cpFloat Moment = cpMomentForCircle(mass, 0, radius, cpvzero);
   this->Body = cpSpaceAddBody(Space, cpBodyNew(mass, Moment));
