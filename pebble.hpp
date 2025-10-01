@@ -30,10 +30,6 @@ struct Obj {
   void setCollisionType(cpCollisionType);
 };
 
-#ifdef FRAX_FRAMEWORK
-void Draw(Frax::Rect *);
-#endif
-
 } // namespace Pebble
 
 // Inline function definations
@@ -76,17 +72,6 @@ inline void Obj::setCollisionType(cpCollisionType type) {
 
 namespace Pebble {
 
-#ifdef FRAX_FRAMEWORK
-void Draw(Frax::Rect *Rect) {
-  auto box = std::any_cast<Obj *>(Rect->Data);
-  cpVect pos = cpBodyGetPosition(box->Body);
-
-  Rect->SetCenter({static_cast<float>(pos.x), static_cast<float>(pos.y)});
-  Rect->Rotation = cpBodyGetAngle(box->Body) * RAD2DEG;
-
-  Rect->Draw();
-}
-#endif
 Obj::Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass) {
 
   this->Space = space;
