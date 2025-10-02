@@ -1,12 +1,15 @@
 // #define CP_USE_DOUBLES 0
 #include <chipmunk/chipmunk.h>
+#include <chipmunk/chipmunk_types.h>
 
 namespace Pebble {
 struct Obj {
   cpBody *Body;
   cpShape *Shape;
   cpSpace *Space;
-  bool ShouldDelete;
+  cpVect size;
+  cpFloat radius;
+  bool Collision;
 
   Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass);
   Obj(cpSpace *space, cpVect pos, cpFloat radius, cpFloat mass);
@@ -75,7 +78,8 @@ namespace Pebble {
 Obj::Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass) {
 
   this->Space = space;
-  this->ShouldDelete = false;
+  this->Collision = false;
+  this->size = size;
 
   cpFloat Moment = cpMomentForBox(mass, size.x, size.y);
   this->Body = cpSpaceAddBody(Space, cpBodyNew(mass, Moment));
@@ -92,7 +96,8 @@ Obj::Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass) {
 Obj::Obj(cpSpace *space, cpVect pos, cpFloat radius, cpFloat mass) {
 
   this->Space = space;
-  this->ShouldDelete = false;
+  this->Collision = false;
+  this->radius = radius;
 
   cpFloat Moment = cpMomentForCircle(mass, 0, radius, cpvzero);
   this->Body = cpSpaceAddBody(Space, cpBodyNew(mass, Moment));
