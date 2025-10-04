@@ -1,6 +1,7 @@
 // #define CP_USE_DOUBLES 0
 #include <chipmunk/chipmunk.h>
 #include <chipmunk/chipmunk_types.h>
+#include <chipmunk/cpBody.h>
 
 namespace Pebble {
 struct Obj {
@@ -24,9 +25,12 @@ struct Obj {
   void setAngle(cpFloat);
   cpFloat getAngle();
 
-  cpVect getPosition();
-
   void setVelocity(cpVect);
+  cpVect getVelocity();
+
+  cpVect getPosition();
+  cpFloat getMass();
+
   void setAngularVelocity(cpFloat);
   void applyForce(cpVect);
   void applyImpulse(cpVect);
@@ -38,8 +42,10 @@ struct Obj {
 // Inline function definations
 namespace Pebble {
 
-inline cpVect Obj::getPosition() {
-  return cpBodyGetPosition(Body);
+inline cpVect Obj::getPosition() { return cpBodyGetPosition(Body); }
+
+inline cpFloat Obj::getMass() {
+  return cpBodyGetMass(Body);
 }
 
 inline void Obj::applyForce(cpVect force) {
@@ -58,6 +64,10 @@ inline cpFloat Obj::getAngle() { return cpBodyGetAngle(Body); }
 
 inline void Obj::setVelocity(cpVect vel) {
   return cpBodySetVelocity(Body, vel);
+}
+
+inline cpVect Obj::getVelocity() {
+  return cpBodyGetVelocity(Body);
 }
 
 inline void Obj::setAngularVelocity(cpFloat vel) {
