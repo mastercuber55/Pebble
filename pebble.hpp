@@ -1,15 +1,14 @@
-// #define CP_USE_DOUBLES 0
 #include <chipmunk/chipmunk.h>
-#include <chipmunk/chipmunk_types.h>
-#include <chipmunk/cpBody.h>
 
 namespace Pebble {
 struct Obj {
   cpBody *Body;
   cpShape *Shape;
   cpSpace *Space;
+
   const cpVect Size;
   const cpFloat Radius;
+
   bool Collision;
 
   Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass);
@@ -102,7 +101,8 @@ Obj::Obj(cpSpace *space, cpVect pos, cpVect size, cpFloat mass) :Size(size), Rad
   cpShapeSetElasticity(this->Shape, 0.3f);
 }
 
-Obj::Obj(cpSpace *space, cpVect pos, cpFloat radius, cpFloat mass) : Radius(radius), Size(cpvzero) {
+Obj::Obj(cpSpace *space, cpVect pos, cpFloat radius, cpFloat mass)
+    : Size(cpvzero), Radius(radius) {
 
   this->Space = space;
   this->Collision = false;
